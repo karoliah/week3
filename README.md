@@ -1,3 +1,3 @@
-# week2
+# week3
 
-Week2 exercises.
+Week3 exercises.
