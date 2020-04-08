@@ -21,7 +21,6 @@ router.post('/', [
   body('age', 'Age required in numbers').isNumeric().isLength({min:1}),
   body('weight', 'Weight in numbers required').isNumeric().isLength({min: 1}),
   body('owner', 'Owner required').isLength({min:1}),
-  body('file', 'Only image file required').accept("/image").isLength({min:1}),
 
 ], upload.single('cat'), (req, res) => {
   console.log('tiedosto: ', req.file);
