@@ -1,45 +1,50 @@
 'use strict';
-// catRoute
-const cors = require('cors');
 const express = require('express');
 const router = express.Router();
+const {body, check} = require('express-validator');
 const multer = require('multer');
-const upload = multer({dest: './uploads/'});
-const {body, sanitizeBody} = require('express-validator');
+const upload = multer({dest: './uploads/', fileFilter});
 const catController = require('../controllers/catController');
+
+function fileFilter(req, file, cb) {
+  console.log('filefilter', file);
+
+
+  if (!file.mimetype.includes('image')) {
+    return cb(null, false, new Error('I don\'t have a clue!'));
+  } else {
+    cb(null, true);
+  }
+};
 
 router.get('/', catController.cat_list_get);
 
 router.get('/:id', catController.cat_get);
 
-router.post('/hack', (req,res) => {
+router.post('/hack', (req, res) => {
   res.send(req.body.search);
 });
 
-router.post('/', [
-  body('name','Name required').required,
-  body('age', 'Age required in numbers').isNumeric().isLength({min:1}),
-  body('weight', 'Weight in numbers required').isNumeric().isLength({min: 1}),
-  body('owner', 'Owner required').isLength({min:1}),
-
-], upload.single('cat'), (req, res) => {
-  console.log('tiedosto: ', req.file);
-  catController.cat_post(req,res);
-  res.send('With this endpoint you can add cats');
-});
+router.post('/',
+    upload.single('cat'),
+    [
+      body('name', 'name required').isLength({min: 1}),
+      body('age', 'age in numbers required').isNumeric().isLength({min: 1}),
+      body('weight', 'weight in numbers required').isNumeric().isLength({min: 1}),
+      body('owner', 'owner in numbers required').isNumeric().isLength({min: 1}),
+      check('cat').custom(catController.cat_file_validator), // cat_file_validator checks only req.file
+    ], (req, res) => {
+      console.log('tiedosto: ', req.file);
+      catController.cat_post(req, res);
+    });
 
 router.put('/', [
-  body('name','Name required').required,
-  body('age', 'Age required in numbers').isNumeric().isLength({min:1}),
-  body('weight', 'Weight in numbers required').isNumeric().isLength({min: 1}),
-  body('owner', 'Owner required').isLength({min:1}),
-  body('file', 'Only image file required').accept("/image").isLength({min:1}),
-],catController.cat_put); /*  => {
-  res.send('With this endpoint you can edit cats');
-});*/
+  body('name', 'name required').isEmpty({min: 1}),
+  body('age', 'age in numbers required').isNumeric().isLength({min: 1}),
+  body('weight', 'weight in numbers required').isNumeric().isLength({min: 1}),
+  body('owner', 'owner in numbers required').isNumeric().isLength({min: 1}),
+], catController.cat_put);
 
-router.delete('/:id', catController.cat_delete); /*(req, res) => {
-  res.send('With this endpoint you can delete cats');
-});*/
+router.delete('/:id', catController.cat_delete);
 
 module.exports = router;
